@@ -1,0 +1,117 @@
+image:
+  repository: traefik
+  tag: v3.3.3
+  pullPolicy: IfNotPresent
+
+globalArguments:
+- "--global.checknewversion=false"
+- "--global.sendanonymoususage=false"
+
+logs:
+  general:
+    level: DEBUG
+  access:
+    enabled: false
+
+providers:
+  kubernetesCRD:
+    enabled: true
+  kubernetesIngress:
+    enabled: true
+
+entryPoints:
+  traefik:
+    port: 8080
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: :443
+    http:
+      middlewares:
+        - auth@file
+        - strip@file
+      tls:
+        options: foobar
+        domains:
+          - main: "gateway.example.com"
+            sans:
+              - "*.example.com"
+  ssh-netconf:
+    address: ":4334"
+  tls-netconf:
+    address: ":4335"
+  ping: 
+    address: ":8082"
+
+ping:
+  entryPoint: "ping"
+ 
+serversTransport:
+  insecureSkipVerify: true
+
+api:
+  insecure: true
+  dashboard: true
+  debug: true
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  periodSeconds: 10
+
+livenessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  periodSeconds: 10
+
+extraObjects:
+  # Basic Authentication Middleware
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: Middleware
+    metadata:
+      name: traefik-auth
+      namespace: traefik  # Ensure this matches your desired namespace
+    spec:
+      basicAuth:
+        users:
+          - "myuser:$2y$05$e0NRqVUW8QLZoN0gLMsEYuQ4I7n6Z5T/d29f8vH.UrQO8c1V7ORmS"
+
+  # Strip Prefix Middleware
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: Middleware
+    metadata:
+      name: strip
+      namespace: traefik
+    spec:
+      stripPrefix:
+        prefixes:
+          - /traefik
+
+  # IngressRoute for the Gateway
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: IngressRoute
+    metadata:
+      name: gateway
+      namespace: traefik
+    spec:
+      entryPoints:
+        - websecure
+      routes:
+        - match: Host(`gateway.example.com`)  # Replace with your gateway domain (e.g., gateway.${HTTP_DOMAIN})
+          kind: Rule
+          middlewares:
+            - name: traefik-auth
+            - name: strip
+          services:
+            - name: api@internal
+              kind: TraefikService
+              weight: 1
+      tls: {}  # Enables TLS for this route
+
