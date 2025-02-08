@@ -9,6 +9,9 @@ deployment:
   enabled: true
   kind: Deployment
   replicas: 1
+  healthcheckScheme: HTTP
+  readinessPath: /ping
+  livenessPath: /ping
   hostAliases:
   - ip: "127.0.0.1" # this is an example
     hostnames:
@@ -31,38 +34,50 @@ providers:
   kubernetesIngress:
     enabled: true
 
-entryPoints:
+ports:
   traefik:
     port: 8080
+    protocol: TCP
+    expose:
+      default: false
+    exposedPort: 8080
   web:
-    address: :80
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-          permanent: true
+    port: 80
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 80
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
   websecure:
-    address: :443
-    http:
-      middlewares:
-        - auth@file
-        - strip@file
-      tls:
-        options: foobar
-        domains:
-          - main: "gateway.virtual33.myguest.virtualbox.org"
-            sans:
-              - "*.virtual33.myguest.virtualbox.org"
+    port: 443
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 443
+    tls:
+      enabled: true
+      options: ""
+      certResolver: ""
+      domains:
+        - main: "gateway.virtual33.myguest.virtualbox.org"
+          sans:
+            - "*.virtual33.myguest.virtualbox.org"
   ssh-netconf:
-    address: ":4334"
+    port: 4334
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 4334
   tls-netconf:
-    address: ":4335"
-  ping: 
-    address: ":8082"
-
-ping:
-  entryPoint: "ping"
+    port: 4335
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 4335
  
 serversTransport:
   insecureSkipVerify: true
@@ -96,6 +111,14 @@ ingressRoute:
     services:
       - name: api@internal
         kind: TraefikService
+  healthcheck:
+    enabled: true
+    matchRule: PathPrefix(`/ping`)
+    services:
+      - name: ping@internal
+        kind: TraefikService
+    entryPoints: ["traefik"]
+    middlewares: []
 
 extraObjects:
   # Basic Authentication Middleware
@@ -127,3 +150,4 @@ extraObjects:
       stripPrefix:
         prefixes:
           - /traefik
+
