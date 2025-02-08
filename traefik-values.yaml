@@ -12,10 +12,7 @@ deployment:
   hostAliases:
   - ip: "127.0.0.1" # this is an example
     hostnames:
-     - "example.com"
-  - ip: "172.1.40.61"
-    hostnames:
-      - "traefik-dashboard.example.com"
+     - "gateway.virtual33.myguest.virtualbox.org"
                                         
 
 globalArguments:
@@ -54,9 +51,9 @@ entryPoints:
       tls:
         options: foobar
         domains:
-          - main: "example.com"
+          - main: "gateway.virtual33.myguest.virtualbox.org"
             sans:
-              - "*.example.com"
+              - "*.virtual33.myguest.virtualbox.org"
   ssh-netconf:
     address: ":4334"
   tls-netconf:
@@ -91,7 +88,7 @@ ingressRoute:
   dashboard:
     enabled: true
     # Custom match rule with host domain
-    matchRule: Host(`localhost`)
+    matchRule: Host(`gateway.virtual33.myguest.virtualbox.org`)
     entryPoints: ["websecure"]
     # Add custom middlewares : authentication and redirection
     middlewares:
@@ -99,7 +96,6 @@ ingressRoute:
     services:
       - name: api@internal
         kind: TraefikService
-    entryPoints: ["traefik"]
 
 extraObjects:
   # Basic Authentication Middleware
@@ -131,5 +127,3 @@ extraObjects:
       stripPrefix:
         prefixes:
           - /traefik
-
-
