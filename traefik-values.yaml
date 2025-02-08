@@ -1,7 +1,22 @@
+---
+
 image:
   repository: traefik
   tag: v3.3.3
   pullPolicy: IfNotPresent
+ 
+deployment:
+  enabled: true
+  kind: Deployment
+  replicas: 1
+  hostAliases:
+  - ip: "127.0.0.1" # this is an example
+    hostnames:
+     - "example.com"
+  - ip: "172.1.40.61"
+    hostnames:
+      - "traefik-dashboard.example.com"
+                                        
 
 globalArguments:
 - "--global.checknewversion=false"
@@ -29,6 +44,7 @@ entryPoints:
         entryPoint:
           to: websecure
           scheme: https
+          permanent: true
   websecure:
     address: :443
     http:
@@ -38,7 +54,7 @@ entryPoints:
       tls:
         options: foobar
         domains:
-          - main: "gateway.example.com"
+          - main: "example.com"
             sans:
               - "*.example.com"
   ssh-netconf:
@@ -71,20 +87,42 @@ livenessProbe:
   timeoutSeconds: 5
   periodSeconds: 10
 
+ingressRoute:
+  dashboard:
+    enabled: true
+    # Custom match rule with host domain
+    matchRule: Host(`localhost`)
+    entryPoints: ["websecure"]
+    # Add custom middlewares : authentication and redirection
+    middlewares:
+      - name: traefik-dashboard-auth
+    services:
+      - name: api@internal
+        kind: TraefikService
+    entryPoints: ["traefik"]
+
 extraObjects:
   # Basic Authentication Middleware
-  - apiVersion: traefik.containo.us/v1alpha1
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: traefik-dashboard-auth-secret
+    type: kubernetes.io/basic-auth
+    stringData:
+      username: admin
+      password: changeme
+
+  - apiVersion: traefik.io/v1alpha1
     kind: Middleware
     metadata:
-      name: traefik-auth
+      name: traefik-dashboard-auth
       namespace: traefik  # Ensure this matches your desired namespace
     spec:
       basicAuth:
-        users:
-          - "myuser:$2y$05$e0NRqVUW8QLZoN0gLMsEYuQ4I7n6Z5T/d29f8vH.UrQO8c1V7ORmS"
+        secret: traefik-dashboard-auth-secret
 
   # Strip Prefix Middleware
-  - apiVersion: traefik.containo.us/v1alpha1
+  - apiVersion: traefik.io/v1alpha1
     kind: Middleware
     metadata:
       name: strip
@@ -94,24 +132,4 @@ extraObjects:
         prefixes:
           - /traefik
 
-  # IngressRoute for the Gateway
-  - apiVersion: traefik.containo.us/v1alpha1
-    kind: IngressRoute
-    metadata:
-      name: gateway
-      namespace: traefik
-    spec:
-      entryPoints:
-        - websecure
-      routes:
-        - match: Host(`gateway.example.com`)  # Replace with your gateway domain (e.g., gateway.${HTTP_DOMAIN})
-          kind: Rule
-          middlewares:
-            - name: traefik-auth
-            - name: strip
-          services:
-            - name: api@internal
-              kind: TraefikService
-              weight: 1
-      tls: {}  # Enables TLS for this route
 
