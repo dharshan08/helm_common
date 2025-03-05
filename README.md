@@ -9,3 +9,14 @@ helm install -f traefik-values.yaml traefik traefik/traefik -n traefik
 # Setup MetalLb loadbalancer to view traefik dashboard
 kubectl apply -f metallb.yaml
 
+# setup tls
+
+`kubectl apply -f selfsigned-issuer.yaml`
+
+`kubectl apply -f gateway-cert.yaml`
+
+#create namespace
+
+` kubectl create ns opa`
+
+`kubectl create ns traefik`
