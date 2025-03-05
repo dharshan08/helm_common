@@ -106,6 +106,8 @@ ingressRoute:
     matchRule: Host(`gateway.virtual33.myguest.virtualbox.org`)
     entryPoints: ["websecure"]
     # Add custom middlewares : authentication and redirection
+    tls:
+      secretName: gateway.virtual33.myguest.virtualbox.org-tls
     middlewares:
       - name: traefik-dashboard-auth
     services:

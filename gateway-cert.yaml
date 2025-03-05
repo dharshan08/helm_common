@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gateway-virtual33-tls
+  namespace: opa
+spec:
+  secretName: gateway.virtual33.myguest.virtualbox.org-tls
+  duration: 8760h # 1 year
+  renewBefore: 360h # 15 days before expiry
+  dnsNames:
+  - gateway.virtual33.myguest.virtualbox.org
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+
