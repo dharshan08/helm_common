@@ -9,6 +9,16 @@ helm install -f traefik-values.yaml traefik traefik/traefik -n traefik
 # Setup MetalLb loadbalancer to view traefik dashboard
 kubectl apply -f metallb.yaml
 
+# install cert-manager
+`helm repo add jetstack https://charts.jetstack.io`
+
+`helm repo update`
+
+`helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --set installCRDs=true`
+
 # setup tls
 
 `kubectl apply -f selfsigned-issuer.yaml`
