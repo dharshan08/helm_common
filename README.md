@@ -14,7 +14,7 @@ kubectl apply -f metallb.yaml
 
 `helm repo update`
 
-`helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set installCRDs=true`
+`helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set crds.enabled=true`
 
 # setup tls
 
