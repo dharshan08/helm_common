@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-middleware
+  namespace: traefik  # Make sure this is the correct namespace
+data:
+  middleware.yaml: |
+    http:
+      middlewares:
+        default-headers:
+          headers:
+            CustomFrameOptionsValue: "SAMEORIGIN"
+            sslRedirect: true
+            browserXssFilter: true
+            contentTypeNosniff: true
+            forceSTSHeader: true
+            stsSeconds: 315360000
+            stsIncludeSubdomains: true
+            stsPreload: true
+    tls:
+      options:
+        myTLSOptions:
+          minVersion: VersionTLS12
+

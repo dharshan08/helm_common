@@ -2,7 +2,7 @@
 
 image:
   repository: traefik
-  tag: v3.3.3
+  tag: v2.9.6
   pullPolicy: IfNotPresent
  
 deployment:
@@ -16,7 +16,15 @@ deployment:
   - ip: "127.0.0.1" # this is an example
     hostnames:
      - "gateway.virtual33.myguest.virtualbox.org"
-                                        
+  additionalVolumes:
+  - name: middleware-config
+    configMap:
+      name: traefik-middleware  # Ensure this ConfigMap exists
+
+  extraVolumeMounts:
+  - name: middleware-config
+    mountPath: "/etc/traefik/"
+    subPath: "middleware.yaml"
 
 globalArguments:
 - "--global.checknewversion=false"
@@ -29,6 +37,9 @@ logs:
     enabled: false
 
 providers:
+  file:
+    filename: "/middleware.yaml"
+    watch: true
   kubernetesCRD:
     enabled: true
   kubernetesIngress:
@@ -38,25 +49,24 @@ ports:
   traefik:
     port: 8080
     protocol: TCP
-    expose:
-      default: false
+    expose: false
     exposedPort: 8080
+    nodePort: 30808   # Optionally specify the NodePort value here if needed
   web:
     port: 80
     protocol: TCP
-    expose:
-      default: true
+    expose: true
     exposedPort: 80
     redirections:
       entryPoint:
         to: websecure
         scheme: https
         permanent: true
+    nodePort: 30080   # Optionally specify the NodePort value here if needed
   websecure:
     port: 443
     protocol: TCP
-    expose:
-      default: true
+    expose: true
     exposedPort: 443
     tls:
       enabled: true
@@ -66,17 +76,16 @@ ports:
         - main: "gateway.virtual33.myguest.virtualbox.org"
           sans:
             - "*.virtual33.myguest.virtualbox.org"
+    nodePort: 30443   # Optionally specify the NodePort value here if needed
   ssh-netconf:
     port: 4334
     protocol: TCP
-    expose:
-      default: true
+    expose: true
     exposedPort: 4334
   tls-netconf:
     port: 4335
     protocol: TCP
-    expose:
-      default: true
+    expose: true
     exposedPort: 4335
  
 serversTransport:
@@ -153,3 +162,7 @@ extraObjects:
         prefixes:
           - /traefik
 
+service:
+  enabled: true
+  type: NodePort  # Change from LoadBalancer to NodePort
+  single: true
