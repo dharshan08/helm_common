@@ -12,19 +12,6 @@ deployment:
   healthcheckScheme: HTTP
   readinessPath: /ping
   livenessPath: /ping
-  hostAliases:
-  - ip: "127.0.0.1" # this is an example
-    hostnames:
-     - "gateway.virtual33.myguest.virtualbox.org"
-  additionalVolumes:
-  - name: middleware-config
-    configMap:
-      name: traefik-middleware  # Ensure this ConfigMap exists
-
-  extraVolumeMounts:
-  - name: middleware-config
-    mountPath: "/etc/traefik/"
-    subPath: "middleware.yaml"
 
 globalArguments:
 - "--global.checknewversion=false"
@@ -37,9 +24,6 @@ logs:
     enabled: false
 
 providers:
-  file:
-    filename: "/middleware.yaml"
-    watch: true
   kubernetesCRD:
     enabled: true
   kubernetesIngress:
@@ -88,8 +72,6 @@ ports:
     expose: true
     exposedPort: 4335
  
-serversTransport:
-  insecureSkipVerify: true
 
 api:
   insecure: true
@@ -115,10 +97,6 @@ ingressRoute:
     matchRule: Host(`gateway.virtual33.myguest.virtualbox.org`)
     entryPoints: ["websecure"]
     # Add custom middlewares : authentication and redirection
-    tls:
-      secretName: gateway.virtual33.myguest.virtualbox.org-tls
-    middlewares:
-      - name: traefik-dashboard-auth
     services:
       - name: api@internal
         kind: TraefikService
@@ -132,24 +110,6 @@ ingressRoute:
     middlewares: []
 
 extraObjects:
-  # Basic Authentication Middleware
-  - apiVersion: v1
-    kind: Secret
-    metadata:
-      name: traefik-dashboard-auth-secret
-    type: kubernetes.io/basic-auth
-    stringData:
-      username: admin
-      password: changeme
-
-  - apiVersion: traefik.io/v1alpha1
-    kind: Middleware
-    metadata:
-      name: traefik-dashboard-auth
-      namespace: traefik  # Ensure this matches your desired namespace
-    spec:
-      basicAuth:
-        secret: traefik-dashboard-auth-secret
 
   # Strip Prefix Middleware
   - apiVersion: traefik.io/v1alpha1
