@@ -23,6 +23,13 @@ logs:
   access:
     enabled: false
 
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        secretName: traefik-selfsigned-cert
+
 providers:
   kubernetesCRD:
     enabled: true
@@ -54,8 +61,7 @@ ports:
     exposedPort: 443
     tls:
       enabled: true
-      options: ""
-      certResolver: ""
+      options: default
       domains:
         - main: "gateway.virtual33.myguest.virtualbox.org"
           sans:
@@ -72,6 +78,9 @@ ports:
     expose: true
     exposedPort: 4335
  
+tlsOptions:
+  default:
+    minVersion: VersionTLS12
 
 api:
   insecure: true
@@ -100,6 +109,9 @@ ingressRoute:
     services:
       - name: api@internal
         kind: TraefikService
+    tls: 
+      enabled: true
+      secretname: traefik-selfisigned-cert
   healthcheck:
     enabled: true
     matchRule: PathPrefix(`/ping`)
@@ -109,10 +121,12 @@ ingressRoute:
     entryPoints: ["traefik"]
     middlewares: []
 
+crds:
+  enabled: true
 extraObjects:
 
   # Strip Prefix Middleware
-  - apiVersion: traefik.io/v1alpha1
+  - apiVersion: traefik.containo.us/v1alpha1
     kind: Middleware
     metadata:
       name: strip
