@@ -10,8 +10,8 @@ spec:
     - match: Host(`gateway.virtual33.myguest.virtualbox.org`) && PathPrefix(`/traefik`)
       kind: Rule
       services:
-        - name: api@internal
-          kind: TraefikService
+        - name: traefik
+          port: 8080
       middlewares:
         - name: strip-prefix
   tls:
