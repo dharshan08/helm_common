@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  labels:
+    app: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-account
+      containers:
+        - name: traefik
+          image: traefik:v2.9.6
+          args:
+            - --api.insecure
+            - --serverstransport.insecureskipverify=true
+            - --log.level=DEBUG
+            - --global.sendanonymoususage=false
+            - --global.checkNewVersion=false
+            - --api.dashboard=true
+            - --api.debug=true
+            - --accesslog=false
+            - --entrypoints.web.address=:80
+            - --entrypoints.web.http.redirections.entrypoint.to=websecure
+            - --entrypoints.web.http.redirections.entrypoint.scheme=https
+            - --entryPoints.websecure.address=:443
+            - --entrypoints.websecure.http.tls.domains[0].main=gateway.virtual33.myguest.virtualbox.org
+            - --entrypoints.websecure.http.tls.domains[0].sans=*.virtual33.myguest.virtualbox.org
+            - --entrypoints.ssh-netconf-callhome.address=:4334
+            - --entrypoints.tls-netconf-callhome.address=:4335
+            - --providers.kubernetesingress
+            - --providers.kubernetescrd
+          ports:
+            - name: web
+              containerPort: 80
+            - name: dashboard
+              containerPort: 8080
+            - name: websecure
+              containerPort: 443
+            - name: tls-netconf
+              containerPort: 4335
+            - name: ssh-netconf
+              containerPort: 4334

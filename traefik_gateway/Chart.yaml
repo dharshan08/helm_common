@@ -1,0 +1,7 @@
+apiVersion: v2
+name: traefik-gateway
+description: A Helm chart for deploying Traefik as a gateway
+type: application
+version: 1.0.0
+appVersion: "2.9.6"
+

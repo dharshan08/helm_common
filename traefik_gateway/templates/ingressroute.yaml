@@ -1,0 +1,18 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: default
+spec:
+  entryPoints:
+    - websecure  # Only allow HTTPS
+  routes:
+    - match: Host(`gateway.virtual33.myguest.virtualbox.org`) && PathPrefix(`/traefik`)
+      kind: Rule
+      services:
+        - name: api@internal
+          kind: TraefikService
+      middlewares:
+        - name: strip-prefix
+  tls:
+    secretName: whoami-secret

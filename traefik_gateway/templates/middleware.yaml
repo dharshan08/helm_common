@@ -1,0 +1,25 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix
+  namespace: default
+spec:
+  stripPrefix:
+    prefixes:
+      - /traefik
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: default-headers
+  namespace: default
+spec:
+  headers:
+    customFrameOptionsValue: "SAMEORIGIN"
+    sslRedirect: true
+    browserXssFilter: true
+    contentTypeNosniff: true
+    forceSTSHeader: true
+    stsSeconds: 315360000
+    stsIncludeSubdomains: true
+    stsPreload: true
