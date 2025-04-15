@@ -1,18 +1,17 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: traefik-dashboard
-  namespace: default
+  name: {{ .Values.traefik.name }}-dashboard
+  namespace: {{ .Values.traefik.namespace }}
 spec:
   entryPoints:
-    - websecure  # Only allow HTTPS
+    - websecure 
   routes:
-    - match: Host(`gateway.virtual33.myguest.virtualbox.org`) && PathPrefix(`/traefik`)
+    - match: Host(`gateway.virtual33.myguest.virtualbox.org`)
       kind: Rule
       services:
-        - name: traefik
-          port: 8080
+        - name: api@internal
+          kind: TraefikService
       middlewares:
-        - name: strip-prefix
-  tls:
-    secretName: whoami-secret
+        - name: default-headers
+

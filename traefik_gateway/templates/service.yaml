@@ -1,22 +1,23 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: traefik
+  name: {{ .Release.Name }}
+  namespace: default
 spec:
   type: NodePort
   ports:
     - name: web
       port: 80
-      targetPort: web
-      nodePort: 30080
+      targetPort: {{ .Values.ports.web }}
+      nodePort: {{ .Values.nodePorts.web }}
     - name: websecure
       port: 443
-      targetPort: websecure
-      nodePort: 30443
+      targetPort: {{ .Values.ports.websecure }}
+      nodePort: {{ .Values.nodePorts.websecure }}
     - name: dashboard
       port: 8080
-      targetPort: dashboard
-      nodePort: 28932
+      targetPort: {{ .Values.ports.dashboard }}
+      nodePort: {{ .Values.nodePorts.dashboard }}
   selector:
-    app: traefik
+    app: {{ .Release.Name }}
 

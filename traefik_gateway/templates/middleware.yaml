@@ -1,25 +1,27 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: strip-prefix
-  namespace: default
+  name: {{ .Values.middleware.stripPrefix.name }}
+  namespace: {{ .Values.middleware.namespace }}
 spec:
-  stripPrefix:
-    prefixes:
-      - /traefik
+  stripPrefixRegex:
+    regex:
+{{ toYaml .Values.middleware.stripPrefix.regex | indent 6 }}
+
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: default-headers
-  namespace: default
+  name: {{ .Values.middleware.defaultHeaders.name }}
+  namespace: {{ .Values.middleware.namespace }}
 spec:
   headers:
-    customFrameOptionsValue: "SAMEORIGIN"
-    sslRedirect: true
-    browserXssFilter: true
-    contentTypeNosniff: true
-    forceSTSHeader: true
-    stsSeconds: 315360000
-    stsIncludeSubdomains: true
-    stsPreload: true
+    customFrameOptionsValue: {{ .Values.middleware.defaultHeaders.headers.customFrameOptionsValue | quote }}
+    sslRedirect: {{ .Values.middleware.defaultHeaders.headers.sslRedirect }}
+    browserXssFilter: {{ .Values.middleware.defaultHeaders.headers.browserXssFilter }}
+    contentTypeNosniff: {{ .Values.middleware.defaultHeaders.headers.contentTypeNosniff }}
+    forceSTSHeader: {{ .Values.middleware.defaultHeaders.headers.forceSTSHeader }}
+    stsSeconds: {{ .Values.middleware.defaultHeaders.headers.stsSeconds }}
+    stsIncludeSubdomains: {{ .Values.middleware.defaultHeaders.headers.stsIncludeSubdomains }}
+    stsPreload: {{ .Values.middleware.defaultHeaders.headers.stsPreload }}
+
