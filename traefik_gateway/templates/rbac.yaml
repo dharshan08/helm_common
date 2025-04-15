@@ -1,13 +1,8 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ .Values.traefik.name }}-account
-  namespace: {{ .Values.traefik.namespace }}
----
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ .Values.traefik.name }}-role
+  name: traefik-role
+
 rules:
   - apiGroups:
       - ""
@@ -15,14 +10,29 @@ rules:
       - services
       - endpoints
       - secrets
-    verbs: [ "get", "list", "watch" ]
-  - apiGroups: [ "extensions", "networking.k8s.io" ]
-    resources: [ "ingresses", "ingressclasses" ]
-    verbs: [ "get", "list", "watch" ]
-  - apiGroups: [ "extensions", "networking.k8s.io" ]
-    resources: [ "ingresses/status" ]
-    verbs: [ "update" ]
-  - apiGroups: [ "traefik.containo.us" ]
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+      - ingressclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+  - apiGroups:
+      - traefik.containo.us
     resources:
       - middlewares
       - middlewaretcps
@@ -33,18 +43,28 @@ rules:
       - tlsoptions
       - tlsstores
       - serverstransports
-    verbs: [ "get", "list", "watch" ]
+    verbs:
+      - get
+      - list
+      - watch
+
 ---
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: {{ .Values.traefik.name }}-role-binding
+  name: traefik-account
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traefik-role-binding
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.traefik.name }}-account
-    namespace: {{ .Values.traefik.namespace }}
+    name: traefik-account
+    namespace: default
 roleRef:
   kind: ClusterRole
-  name: {{ .Values.traefik.name }}-role
+  name: traefik-role
   apiGroup: rbac.authorization.k8s.io
 
